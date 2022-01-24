@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Movie DB CMS</title>
+    </head>
+    <body>
+        <h1>Testing Page</h1>
+        <p>Testing only: so do not support DB data udpate</p>
+
+        <h2>Reset Movie Related Table</h2>
+        <form id="resetMovie">
+            <input type="text" id="resetMovieConfirm" placeholder="Type ADD or DROP to proceed" />
+            <button type="submit">Submit</button>
+        </form>
+
+        <h2>Add Actor/Actress</h2>
+        <form id="addActor">
+            <input type="text" id="actorName" placeholder="Actor's name" required/>
+            <input type="date" id="actorBornDate" placeholder="Actor's born date" required/>
+            <input type="radio" id="actorGender" name="gender" value="M" required/><label>M</label>
+            <input type="radio" id="actorGender"  name="gender" value="F" required/><label>F</label>
+            <select id="actorNationality" required>
+                <option value="Country 1" selected>Country 1</option>
+                <option value="Country 2">Country 2</option>
+                <option value="Country 3">Country 3</option>
+            </select>
+            <button type="submit">Submit</button>
+        </form>
+
+        <h2>Add Director</h2>
+        <form id="addDirector">
+            <input type="text" id="directorName" placeholder="Director's name" required/>
+            <input type="date" id="directorBornDate" placeholder="Director's born date" required/>
+            <input type="radio" id="directorGender" name="gender" value="M" required/><label>M</label>
+            <input type="radio" id="directorGender"  name="gender" value="F" required/><label>F</label>
+            <select id="directorNationality" required>
+                <option value="Country 1" selected>Country 1</option>
+                <option value="Country 2">Country 2</option>
+                <option value="Country 3">Country 3</option>
+            </select>
+            <button type="submit">Submit</button>
+        </form>
+        
+        <h2>Add New Movie</h2>
+        <form id="addMovie">
+            <input type="text" id="movieName" placeholder="Movie name" required/>
+            <input type="number" id="moviePrice" placeholder="Movie price" required/>
+            <input type="text" id="movieCountry" placeholder="Movie by which Country" required/>
+            <input type="text" id="movieLanguage" placeholder="Movie language" required/>
+            <input type="number" id="movieBoxOffice" placeholder="Movie box office" required/>
+            <input type="number" id="movieBudget" placeholder="Movie budget" required/>
+            <input type="date" id="movieReleaseDate" placeholder="Movie release date" required/>
+            <!--<input type="file" id="movieCoverImg" placeholder="Movie cover image" required/>-->
+
+            <div class="actorRoleList">
+                <ul>
+                    <li class="actor_1">
+                        <select id="actorsList" class="actorsList" required></select>
+                        <input type="text" class="actorRole" placeholder="The name of the role" required/>
+                    </li>
+                </ul>
+                <button type="button" class="addActorForm">MORE ACTOR</button>
+            </div>
+            <div class="movieGenreList">
+                <ul>
+                    <li class="genre_1">
+                        <select id="genresList" required></select>
+                    </li>
+                </ul>
+                <button type="button" class="addGenreForm">MORE Genre</button>
+            </div>
+            <div class="movieDirectorList">
+                <ul>
+                    <li class="director_1">
+                        <select id="directorsList" class="director#1" required></select>
+                    </li>
+                </ul>
+                <button type="button" class="addDirectorForm">MORE Director</button>
+            </div>
+
+            <button type="submit">Add movie</button>
+        </form>
+
+        <h2>Update Movie Cover Image</h2>
+        <form id="fileUpload" 
+            action='/movies/updateCover' 
+            method='post' 
+            encType="multipart/form-data">
+            <input name="coverImage" id="movieCoverImg" type="file" />
+            <button type="submit">Upload</button>
+        </form>
+    </body>
+    <script
+  src="https://code.jquery.com/jquery-3.6.0.js"
+  integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk="
+  crossorigin="anonymous"></script>
+    <script>
+        //Base variables
+        let actorNum = 1; //for add movies form
+        let genreNum = 1; //for add movies form
+        let directorNum = 1; //for add movies form
+
+        /* This page is for creating testing records , So no security measure is taken */
+        let addActorForm = $('.addActorForm').click((e) => {
+            actorNum++;
+
+            let actorDOMClone = $('.actor_1').clone();
+            actorDOMClone[0].className = `actor_${actorNum}`;
+            $(".actorRoleList ul").append(actorDOMClone);
+        });
+
+        let addDirectorForm = $('.addDirectorForm').click((e) => {
+            directorNum++;
+
+            let directorDOMClone = $('.director_1').clone();
+            directorDOMClone[0].className = `director_${directorNum}`;
+            $(".movieDirectorList ul").append(directorDOMClone);
+        });
+
+        let addGenreForm = $('.addGenreForm').click((e) => {
+            genreNum++;
+
+            let genreDOMClone = $('.genre_1').clone();
+            genreDOMClone[0].className = `genre_${genreNum}`;
+            $(".movieGenreList ul").append(genreDOMClone);
+        });
+
+        //CREATE or DROP Movie Tables
+        let resetBtn = $('#resetMovie').submit((e) => {
+            let resetConfirm = $('#resetMovieConfirm').val();
+            e.preventDefault();
+
+            if(resetConfirm === 'DROP' || resetConfirm === 'ADD'){
+                $.ajax
+                ({
+                    type: "PATCH",
+                    url: `/movies/${resetConfirm.toLowerCase()}Tables`,
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    async: false,
+                    //data: JSON.stringify(),
+                    error:function(data){
+                    },
+                    success:function(data) {
+                        alert(`Tables ${resetConfirm}!`);
+                        $('#resetMovieConfirm').val('');
+                    }
+                });
+            }
+        });
+
+        //INSERT actors record
+        let addActor = $('#addActor').submit((e) => {
+            let currentYear = new Date().getFullYear();
+            let age = currentYear - $('#actorBornDate').val().split('-')[0];
+
+            let data = {
+                name : $('#actorName').val(),
+                bornDate : $('#actorBornDate').val(),
+                gender : $('#actorGender:checked').val(),
+                nation : $('#actorNationality').val(),
+                age
+            };
+
+            e.preventDefault();
+            $.ajax
+            ({
+                type: "PATCH",
+                url: '/movies/addActor',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                async: false,
+                data: JSON.stringify(data),
+                error:function(data){
+                },
+                success:function(data) {
+                    //Add new actor into selection box
+                    let selectDOM = '<option value="'+ data.actor.id +'">'+ data.actor.name +'</option>';
+                    $('.actorsList').append(selectDOM); //insert
+                    $('#addActor input').val('');
+                }
+            });
+        });
+
+        //INSERT directors record
+        let addDirector = $('#addDirector').submit((e) => {
+            let currentYear = new Date().getFullYear();
+            let age = currentYear - $('#directorBornDate').val().split('-')[0];
+
+            let data = {
+                name : $('#directorName').val(),
+                bornDate : $('#directorBornDate').val(),
+                gender : $('#directorGender:checked').val(),
+                nation : $('#directorNationality').val(),
+                age
+            };
+
+            e.preventDefault();
+            $.ajax
+            ({
+                type: "PATCH",
+                url: '/movies/addDirector',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                async: false,
+                data: JSON.stringify(data),
+                error:function(data){
+                },
+                success:function(data) {
+                    
+
+                    //Add new actor into selection box
+                    let selectDOM = '<option value="'+ data.director.id +'">'+ data.director.name +'</option>';
+                    $('#directorsList').append(selectDOM); //insert
+
+                    $('#addDirector input').val('');
+                }
+            });
+        });
+
+        //INSERT Movie record
+        let addMovie = $('#addMovie').submit((e) => {
+            let movieName = $('#movieName').val();
+            let moviePrice = $('#moviePrice').val();
+            let movieCountry = $('#movieCountry').val();
+            let movieLanguage = $('#movieLanguage').val();
+            let movieBoxOffice = $('#movieBoxOffice').val();
+            let movieBudget = $('#movieBudget').val();
+            let movieReleaseDate = $('#movieReleaseDate').val();
+            //let movieCoverImg = $('#movieCoverImg').val();
+
+            //get actor & actor role list
+            let actorListLength = $('.actorRoleList ul li').length;
+            let actorList = [];
+            let actorRoleList = [];
+            for(let i = 1; i <= actorListLength; i++){
+                actorList.push($('.actor_' + i + ' option:selected').val());
+                actorRoleList.push($('.actor_' + i + ' .actorRole').val());
+            }
+
+            //get director list
+            let directorListLength = $('.movieDirectorList ul li').length;
+            let directorList = [];
+            for(let i = 1; i <= directorListLength; i++){
+                directorList.push($('.director_' + i + ' option:selected').val());
+            }
+
+            //get genre list
+            let genreListLength = $('.movieGenreList ul li').length;
+            let genreList = [];
+            for(let i = 1; i <= genreListLength; i++){
+                genreList.push($('.genre_' + i + ' option:selected').val());
+            }
+
+            let data = {
+                movieName,
+                moviePrice,
+                movieCountry,
+                movieLanguage,
+                movieBoxOffice,
+                movieBudget,
+                movieReleaseDate,
+                //movieCoverImg,
+                actorList,
+                actorRoleList,
+                directorList,
+                genreList
+            };
+
+            e.preventDefault();
+            $.ajax
+            ({
+                type: "PATCH",
+                url: '/movies/addMovie',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                async: false,
+                data: JSON.stringify(data),
+                error:function(data){
+                },
+                success:function(data) {
+                }
+            });
+        });
+
+        $('#movieCoverImg').on('change', function(){ 
+            let renameFile = new File([$("#movieCoverImg").prop('files')[0]] , 'test.png');
+            $("#movieCoverImgTEST").prop('files')[0] = renameFile;
+        });  
+
+        $( document ).ready( () => {
+            //Load director into Add movie Select list
+            $.ajax({
+                type: "GET",
+                url: '/movies/getDirectors',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                async: false,
+                error:function(data){
+                },
+                success:function(data) {
+                    if(data.status === 200){
+                        //insert director list into add new movie <select>
+                        //should create a function to gen DOM
+                        let selectDOM;
+                        for(let [key, value] of data.directors.entries()){
+                            selectDOM = ''; //reset DOM
+
+                            selectDOM = '<option value="' + value.director_id + '">'+ value.director_name +'</option>';
+                            $('#directorsList').append(selectDOM); //insert
+                        }
+                    }
+                }
+            });
+
+            //Load actors into Add movie Select list
+            $.ajax({
+                type: "GET",
+                url: '/movies/getActors',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                async: false,
+                error:function(data){
+                },
+                success:function(data) {
+                    if(data.status === 200){
+                        //insert director list into add new movie <select>
+                        //should create a function to gen DOM
+                        let selectDOM;
+                        for(let [key, value] of data.actors.entries()){
+                            selectDOM = ''; //reset DOM
+
+                            selectDOM = '<option value="' + value.actor_id + '">'+ value.actor_name +'</option>';
+                            $('#actorsList').append(selectDOM); //insert
+                        }
+                    }
+                }
+            });
+
+            //Load genres into Add movie Select list
+            $.ajax({
+                type: "GET",
+                url: '/movies/getGenres',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                async: false,
+                error:function(data){
+                },
+                success:function(data) {
+                    if(data.status === 200){
+                        //insert director list into add new movie <select>
+                        //should create a function to gen DOM
+                        let selectDOM;
+                        for(let [key, value] of data.genres.entries()){
+                            selectDOM = ''; //reset DOM
+
+                            selectDOM = '<option value="' + value.genre_id + '">'+ value.genre_name +'</option>';
+                            $('#genresList').append(selectDOM); //insert
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</html>
